@@ -1,5 +1,16 @@
 import snowflake.connector
 import os
+from dotenv import load_dotenv
+import random
+import string
+
+load_dotenv()
+
+def generate_password():
+
+    chars = string.ascii_letters + string.digits + "@#$%"
+
+    return ''.join(random.choice(chars) for _ in range(14))
 
 
 def get_connection():
@@ -21,6 +32,7 @@ def onboard_user(username, role):
 
     try:
 
+        # Try creating user
         cur.execute(
             f"CREATE USER {username} PASSWORD='Temp123!'"
         )
@@ -33,8 +45,11 @@ def onboard_user(username, role):
 
     except Exception as e:
 
-        return str(e)
+        if "already exists" in str(e):
 
+            return f"⚠️ User {username} already exists"
+
+        return f"❌ Error: {str(e)}"
 
 
 def reset_password(username):
@@ -42,14 +57,10 @@ def reset_password(username):
     conn = get_connection()
     cur = conn.cursor()
 
-    try:
+    password = generate_password()
 
-        cur.execute(
-            f"ALTER USER {username} SET PASSWORD='Temp123!'"
-        )
+    cur.execute(
+        f"ALTER USER {username} SET PASSWORD='{password}'"
+    )
 
-        return f"✅ Password reset for {username}"
-
-    except Exception as e:
-
-        return str(e)
+    return f"✅ Password reset for {username}. Temp password: {password}"
