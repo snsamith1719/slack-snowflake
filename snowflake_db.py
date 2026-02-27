@@ -32,24 +32,24 @@ def onboard_user(username, role):
 
     try:
 
-        # Try creating user
-        cur.execute(
-            f"CREATE USER {username} PASSWORD='Temp123!'"
-        )
+        password = generate_password()
+
+        cur.execute(f"""
+        CREATE USER IF NOT EXISTS {username}
+        PASSWORD='{password}'
+        DEFAULT_ROLE={role}
+        DEFAULT_WAREHOUSE=COMPUTE_WH
+        """)
 
         cur.execute(
             f"GRANT ROLE {role} TO USER {username}"
         )
 
-        return f"✅ User {username} onboarded"
+        return f"✅ User {username} onboarded with role {role}"
 
     except Exception as e:
 
-        if "already exists" in str(e):
-
-            return f"⚠️ User {username} already exists"
-
-        return f"❌ Error: {str(e)}"
+        return str(e)
 
 
 def reset_password(username):
